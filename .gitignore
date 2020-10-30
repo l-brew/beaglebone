@@ -1,0 +1,4 @@
+*.pyc
+dataLogger.pyc
+__pycache__/
+.idea
