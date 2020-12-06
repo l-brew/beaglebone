@@ -18,6 +18,7 @@ SERVER_ADDRESS = 'laubersberg.de'
 
 class http_comm:
     def __init__(self, pid, ctl, sensor, start, logger, stirrer,tilt):
+        print("http init")
         global SERVER_ADDRESS
         self.stirrer=stirrer
         self.pid=pid
@@ -28,8 +29,10 @@ class http_comm:
         self.sslContext = ssl.create_default_context()
         self.lock = threading.Lock()
         self.tilt=tilt
+        print("http init end")
 
     def run(self):
+        print('http run')
         threading.Thread(target = self.fullStatus ).start()
         threading.Thread(target = self.listenToServer).start()
         threading.Thread(target = self.sendTimer).start()
@@ -106,6 +109,7 @@ class http_comm:
                     elif form["heater"] == "off" :
                         self.ctl.heaterOff()
                 if "stirrer" in form.keys():
+                   
                     if form["stirrer"] == "off" :
                         self.stirrer.stop()
                     else:
@@ -158,6 +162,7 @@ class http_comm:
     def fullStatus(self):
         
         while True:
+            print("report status")
             power = self.pid.getCtlSig()
             if power > 100:
                 power = 100
@@ -184,11 +189,12 @@ class http_comm:
             'period' :self.ctl.getPeriod(),
             'frozen' :self.pid.getFrozen(),
             'tilt_temp' : self.tilt.temp,
-            'tilt_grav' : self.tilt.grav
+            'tilt_grav' : self.tilt.grav,
+            'ntc1':self.start.ntc1.getVal(),
+            'ntc2': self.start.ntc2.getVal()
                 }
 
-            #try:
-            if True:
+            try:
                 conn = http.client.HTTPSConnection(SERVER_ADDRESS, context=self.sslContext)
                 body=urlencode(data,quote_via=quote_plus)
                 conn.request("POST", "/brewserver/status/update/",headers={"Content-Type":"application/x-www-form-urlencoded"},body=body)
@@ -196,8 +202,8 @@ class http_comm:
                 f=open("response.html","w")
                 f.write(r1.read().decode('utf-8'))
                 f.close()
-            #except:
-            #    continue
+            except:
+                continue
             # print(r1.status, r1.reason)
             self.lock.acquire()
 

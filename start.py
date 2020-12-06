@@ -11,6 +11,8 @@ from dataLogger import dataLogger
 from stirrer import stirrer
 import threading
 import tilt2_client
+import datetime
+import ntc
 
 class start:
 
@@ -27,11 +29,13 @@ class start:
         self.logfile =self.dataName
         self.fh=open(self.logfile, "a+")
 
-        self.logger=dataLogger(self.dataName)
+        #self.logger=dataLogger(self.dataName)
 
-        self.stirrer1 = stirrer(self.ctlConfig.get("St1Port","P9_28"))
+        self.stirrer1 = stirrer("P9_14","P9_12")
 
-        self.t1 = pt100.pt100(self.ctlConfig.get("T1Port","P9_40"))
+        self.t1 = pt100.pt100()
+        self.ntc1 = ntc.Ntc('P9_39')
+        self.ntc2 = ntc.Ntc('P9_37')
 
         self.pid1=pid()
         self.pid1.setSetPoint(float(self.ctlConfig.get("SetPoint","20")))
@@ -44,13 +48,17 @@ class start:
         self.setPoint=self.pid1.getSetPoint()
 
 
-        self.ctl1 = relay_ctrl(self.pid1,self.t1,self.ctlConfig.get("HeaterPort","P8_45"),self.ctlConfig.get("CoolerPort","P8_43"),float(self.ctlConfig.get("CtlPeriod","10")))
-
+        self.ctl1 = relay_ctrl(self.pid1,self.t1,self.ctlConfig.get("HeaterPort","P8_13"),self.ctlConfig.get("CoolerPort","P9_42"),float(self.ctlConfig.get("CtlPeriod","10")))
+        
+        print("tilt start", flush=True)
         self.tilt = tilt2_client.Tilt2()
         self.tilt.connect()
+        
+        print("http start", flush=True)
+        self.http1= http_comm(self.pid1,self.ctl1,self.t1,self,None,self.stirrer1,self.tilt)
 
-        self.http1= http_comm(self.pid1,self.ctl1,self.t1,self,self.logger,self.stirrer1,self.tilt)
         self.ctl1.setServer(self.http1)
+  
         self.http1.run()
 
     def writeConfig(self):
@@ -104,15 +112,18 @@ class start:
                 self.pid1.setSetPoint(self.setPoint)
                     
             self.t1.update()
+            self.ntc1.update()
+            self.ntc2.update()
             if self.ctl1.isRunning():
                 self.pid1.calculate(self.t1.getVal())
             self.http1.update()
             time.sleep(1)
             # self.fh.write("%s;%2.2f;%2.2f;%2.2f;%3.2f\n"%
-            self.logger.add([round(time.time(),2),
-                        round(self.pid1.getCtlSig(),2),round(self.pid1.getCtlSig(),2),round(self.t1.getVal(),2),round(self.t1.getVal(),2)])
+           # self.logger.add([round(time.time(),2),
+            #round(self.pid1.getCtlSig(),2),round(self.pid1.getCtlSig(),2),round(self.t1.getVal(),2),round(self.t1.getVal(),2)])
 
 
 if __name__=="__main__":
+    print("start bbb_brew", flush=True)
     s=start()
     s.mainLoop()

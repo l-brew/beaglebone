@@ -3,11 +3,14 @@ import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 import time
 class stirrer:
-    def __init__(self,gpio):
-        self.gpio=gpio
+    def __init__(self,pwm_pin,sd_pin):
+        self.pwm_pin=pwm_pin
+        self.sd_pin=sd_pin
         self.duty = 0
-        self.freq = 20000
+        self.freq = 15000
         self.rampLock=False
+        GPIO.setup(sd_pin,GPIO.OUT)
+        GPIO.output(sd_pin,GPIO.HIGH)
 
     def ramp(self,duty):
         if duty > 100:
@@ -20,15 +23,21 @@ class stirrer:
             direct = 1
         else :
             direct = -1
-
-        while (duty-self.duty)*direct>0:
+        while (duty-self.duty)*direct>=0:
             self.duty=self.duty+direct*2
             try:
-                PWM.start(self.gpio,self.duty*0.7,self.freq)
+                if self.duty > 0:
+                    GPIO.output(self.sd_pin,GPIO.LOW)
+                    PWM.start(self.pwm_pin,70-self.duty*0.65,self.freq)
+                else :
+                    PWM.stop(self.pwm_pin)
+                    GPIO.output(self.sd_pin,GPIO.HIGH)
             except:
                 pass
             time.sleep(0.1)
         self.rampLock=False
+        
+       
 
     def start(self,duty):
         if duty > 100:
@@ -48,7 +57,12 @@ class stirrer:
             if t[0] == 0 :
                 t[0] = 20000
             try:
-                PWM.start(self.gpio,self.duty*0.7,t[0])
+                if self.duty > 0:
+                    GPIO.output(self.sd_pin,GPIO.LOW)
+                    PWM.start(self.pwm_pin,70-self.duty*0.65,t[0])
+                    print(self.duty)
+                else:
+                    GPIO.output(self.sd_pin,GPIO.HIGH)
             except:
                 pass
             time.sleep(t[1])
