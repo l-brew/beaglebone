@@ -1,17 +1,9 @@
-import sys, os
-import time
-import subprocess
-from _thread import start_new_thread
-import cgi
-from relay_ctrl import relay_ctrl
-from pid import pid
-import threading
-from urllib.parse import urlencode, quote_plus
-
 import http.client
-import ssl
-import time
 import json
+import ssl
+import threading
+import time
+from urllib.parse import urlencode, quote_plus
 
 
 class http_comm:
