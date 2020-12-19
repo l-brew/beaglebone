@@ -1,7 +1,6 @@
 import sys, os
 import time
 import subprocess
-#from flup.server.fcgi import WSGIServer
 from _thread import start_new_thread
 import cgi
 from relay_ctrl import relay_ctrl
