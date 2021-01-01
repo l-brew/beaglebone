@@ -2,6 +2,7 @@ import Adafruit_BBIO.GPIO as GPIO
 from Adafruit_BBIO.SPI import SPI
 import time
 from bisect import bisect_right
+from sensor import Sensor
 
 CS_PIN= 'P9_25'
 
@@ -45,19 +46,16 @@ class Interpolate:
     
     
 
-class pt100():
+class PT100(Sensor):
 
     def __init__(self):
-        self.val=0.0
+        self.val=None
         self.tempList=[]
         self.spi = SPI(0, 0)
         self.spi.msh=1000000
         GPIO.setup(CS_PIN,GPIO.OUT)
         GPIO.output(CS_PIN,GPIO.HIGH)
         self.inter=Interpolate(x,y)
-
-    def getVal(self):
-        return self.val
     
     def spi_read(self):
         GPIO.output(CS_PIN,GPIO.LOW)

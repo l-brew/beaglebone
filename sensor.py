@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 
-class sensor(ABC):
-    @abstractmethod
-    def sensor(self):
-        pass
+class Sensor(ABC):
+    def __init__(self):
+        self.val=0
+
+    def getVal(self):
+        return self.val
 
     @abstractmethod
-    def getVal(self):
+    def update(self):
         pass

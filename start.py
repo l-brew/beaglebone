@@ -33,8 +33,9 @@ class start:
 
         self.stirrer1 = stirrer("P9_14","P9_12")
 
-        self.t1 = pt100.pt100()
-        self.ntc1 = ntc.Ntc('P9_39')
+        self.t1 = pt100.PT100()
+        self.t1.update()
+        self.ntc1 = ntc.Ntc('P9_39',beta=3889)
         self.ntc2 = ntc.Ntc('P9_37')
 
         self.pid1=pid()
